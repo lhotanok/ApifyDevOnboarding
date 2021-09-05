@@ -3,7 +3,6 @@ const { handleStart, handleOffers, handleDetail } = require('./src/routes');
 
 const { utils: { log } } = Apify;
 const result = {};
-result.offers = [];
 
 Apify.main(async () => {
     const input = await Apify.getInput();
@@ -13,7 +12,7 @@ Apify.main(async () => {
     const requestQueue = await Apify.openRequestQueue();
 
     const crawler = new Apify.PuppeteerCrawler({
-        maxRequestsPerCrawl: 50,
+        maxRequestsPerCrawl: 200,
         requestList,
         requestQueue,
         launchContext: {
@@ -39,6 +38,4 @@ Apify.main(async () => {
     log.info('Starting the crawl.');
     await crawler.run();
     log.info('Crawl finished.');
-
-    await Apify.pushData(result.offers);
 });

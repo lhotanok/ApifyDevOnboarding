@@ -4,6 +4,7 @@ const { utils: { log } } = Apify;
 
 exports.handleStart = async ({ page }, requestQueue) => {
     log.info('Crawling start page');
+    await page.waitForSelector('div[data-asin]');
 
     const ASINs = await page.$$eval('div[data-asin]',
         (elements) => elements.map((element) => element.getAttribute('data-asin'))
@@ -33,13 +34,17 @@ exports.handleDetail = async ({ request, page }, result) => {
 };
 
 exports.handleOffers = async ({ request, page }, result) => {
+    await page.waitForSelector('#aod-offer-soldBy [aria-label]');
+
     const sellerNames = await getElementsInnerTexts(page, '#aod-offer-soldBy [aria-label]');
     const prices = await scrapePrices(page);
+    log.info(`Sellers: ${sellerNames}`);
+    log.info(`Prices: ${prices}`);
 
     const { ASIN } = request.userData;
     const detailResult = { ...result[ASIN] };
 
-    for (let i = 0; i < sellerNames.length; i++) {
+    for (let i = prices.length - 1; i >= 0; i--) {
         const sellerName = sellerNames[i];
         const price = prices[i];
         const offerResult = { sellerName, price };
@@ -53,7 +58,7 @@ exports.handleOffers = async ({ request, page }, result) => {
         log.info(`Title: ${joinedResult.title}, Url: ${joinedResult.url}`);
         log.info(`Seller name: ${joinedResult.sellerName}, Price: ${joinedResult.price}, Shipping: ${joinedResult.shippingPrice}`);
 
-        result.offers.push(joinedResult);
+        await Apify.pushData(joinedResult);
     }
 };
 
@@ -80,16 +85,21 @@ async function enqueuePagesToScrape(productASINs, requestQueue) {
 }
 
 async function getElementInnerText(page, selector) {
-    return page.$eval(selector, (element) => { return element ? element.innerText.trim() : null; });
+    return page.evaluate((sel) => {
+        const element = document.querySelector(sel);
+        return element ? element.innerText.trim() : '';
+    }, selector);
 }
 
 async function getElementsInnerTexts(page, selector) {
-    return page.$$eval(selector,
-        (elements) => elements.map((element) => { return element ? element.innerText.trim() : null; }));
+    return page.evaluate((sel) => [...document.querySelectorAll(sel)]
+        .map((element) => element.innerText.trim()), selector);
 }
 
 async function scrapePrices(page) {
-    const pinnedOfferPrice = await getElementInnerText(page, '#aod-pinned-offer .a-price>.a-offscreen');
+    let pinnedOfferPrice = await getElementInnerText(page, '#aod-pinned-offer .a-price>.a-offscreen');
+    if (!pinnedOfferPrice) pinnedOfferPrice = await getElementInnerText(page, '#pinned-offer-top-id .a-price>.a-offscreen');
+
     const otherOffersPrices = await getElementsInnerTexts(page, '#aod-offer-price .a-price>.a-offscreen');
 
     const prices = [pinnedOfferPrice];
