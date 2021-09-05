@@ -121,7 +121,10 @@ async function scrapeShippingPrices(page) {
     const shippingPrices = [pinnedOfferShippingPrice];
     otherOffersShippingPrices.forEach((shippingPrice) => shippingPrices.push(shippingPrice));
 
-    return shippingPrices.map((price) => price.split(' ')[1]);
+    return shippingPrices.map((price) => {
+        if (!price) return price;
+        return price.split(' ')[1];
+    });
 }
 
 async function scrapePinnedOfferProperty(page, subSelector) {
@@ -134,8 +137,15 @@ async function scrapePinnedOfferProperty(page, subSelector) {
 }
 
 async function scrapeNotPinnedOffersPriceProperties(page, subSelector) {
-    const otherOffersPriceProperties = await getElementsInnerTexts(page,
-        `#aod-offer-price ${subSelector}`);
+    return page.evaluate((subSel) => {
+        const priceProperties = [];
 
-    return otherOffersPriceProperties;
+        document.querySelectorAll('#aod-offer-list #aod-offer').forEach((element) => {
+            const property = element.querySelector(subSel);
+            if (!property) priceProperties.push(property);
+            else priceProperties.push(property.innerText);
+        });
+
+        return priceProperties;
+    }, subSelector);
 }
