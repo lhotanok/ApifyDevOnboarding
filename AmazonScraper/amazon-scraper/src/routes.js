@@ -5,45 +5,12 @@ const { utils: { log } } = Apify;
 exports.handleStart = async ({ page }, requestQueue) => {
     log.info('Crawling start page');
 
-    await page.waitForSelector('div[data-asin]');
+    const ASINs = await page.$$eval('div[data-asin]',
+        (elements) => elements.map((element) => element.getAttribute('data-asin'))
+            .filter((ASIN) => ASIN !== ''));
 
-    const productASINs = await page.evaluate(() => {
-        const ASINs = [];
-
-        const elements = document.querySelectorAll('div[data-asin]');
-        elements.forEach((element) => {
-            const ASIN = element.getAttribute('data-asin');
-            if (ASIN !== '') ASINs.push(ASIN);
-        });
-
-        return ASINs;
-    });
-
-    log.info(`Product ASINs: ${productASINs}`);
-    await enqueuePagesToScrape(productASINs, requestQueue);
-};
-
-exports.handleOffers = async ({ request, page }, result) => {
-    const sellerName = await getElementInnerText(page, '#sellerProfileTriggerId');
-    const price = await getElementInnerText(page, '#price_inside_buybox');
-    const shippingPrice = await getShippingPrice(page);
-
-    const { ASIN } = request.userData;
-
-    const detailResult = { ...result[ASIN] };
-    const offerResult = { sellerName, price, shippingPrice };
-
-    const joinedResult = {
-        ...detailResult,
-        ...offerResult,
-    };
-
-    log.info('Joined result is: ');
-    log.info(`Title: ${joinedResult.title}, Description: ${joinedResult.description}, Url: ${joinedResult.url}`);
-    log.info(`Seller name: ${joinedResult.sellerName}, Price: ${joinedResult.price}, Shipping: ${joinedResult.shippingPrice}`);
-
-    result[ASIN].offers.push(joinedResult);
-    await Apify.pushData(joinedResult);
+    log.info(`ASINs: ${ASINs}`);
+    await enqueuePagesToScrape(ASINs, requestQueue);
 };
 
 exports.handleDetail = async ({ request, page }, result) => {
@@ -61,9 +28,33 @@ exports.handleDetail = async ({ request, page }, result) => {
     result[ASIN] = { title, description, url, keyword };
 
     log.info(`New detail saved. Title: ${result[ASIN].title},
-    Description: ${result[ASIN].description},
     Url: ${result[ASIN].url},
     Keyword: ${result[ASIN].keyword}`);
+};
+
+exports.handleOffers = async ({ request, page }, result) => {
+    const sellerNames = await getElementsInnerTexts(page, '#aod-offer-soldBy [aria-label]');
+    const prices = await scrapePrices(page);
+
+    const { ASIN } = request.userData;
+    const detailResult = { ...result[ASIN] };
+
+    for (let i = 0; i < sellerNames.length; i++) {
+        const sellerName = sellerNames[i];
+        const price = prices[i];
+        const offerResult = { sellerName, price };
+
+        const joinedResult = {
+            ...detailResult,
+            ...offerResult,
+        };
+
+        log.info('New offer scraped: ');
+        log.info(`Title: ${joinedResult.title}, Url: ${joinedResult.url}`);
+        log.info(`Seller name: ${joinedResult.sellerName}, Price: ${joinedResult.price}, Shipping: ${joinedResult.shippingPrice}`);
+
+        result.offers.push(joinedResult);
+    }
 };
 
 /**
@@ -89,20 +80,20 @@ async function enqueuePagesToScrape(productASINs, requestQueue) {
 }
 
 async function getElementInnerText(page, selector) {
-    return page.$eval(selector, (el) => el.innerText);
+    return page.$eval(selector, (element) => { return element ? element.innerText.trim() : null; });
 }
 
-async function getShippingPrice(page) {
-    const shippingInfo = await getElementInnerText(page, '#ourprice_shippingmessage>span.a-size-base');
-    log.info(`Shipping info: ${shippingInfo}`);
+async function getElementsInnerTexts(page, selector) {
+    return page.$$eval(selector,
+        (elements) => elements.map((element) => { return element ? element.innerText.trim() : null; }));
+}
 
-    if (shippingInfo === null || shippingInfo.length === 0) return null;
+async function scrapePrices(page) {
+    const pinnedOfferPrice = await getElementInnerText(page, '#aod-pinned-offer .a-price>.a-offscreen');
+    const otherOffersPrices = await getElementsInnerTexts(page, '#aod-offer-price .a-price>.a-offscreen');
 
-    const fragments = shippingInfo.split(' ');
-    const shippingKeywordIndex = fragments.indexOf('Shipping');
-    const shippingPriceIndex = shippingKeywordIndex - 1;
+    const prices = [pinnedOfferPrice];
+    otherOffersPrices.forEach((offerPrice) => prices.push(offerPrice));
 
-    if (shippingPriceIndex < fragments.length) return null;
-
-    return fragments[shippingPriceIndex];
+    return prices;
 }

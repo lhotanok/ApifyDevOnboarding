@@ -3,6 +3,7 @@ const { handleStart, handleOffers, handleDetail } = require('./src/routes');
 
 const { utils: { log } } = Apify;
 const result = {};
+result.offers = [];
 
 Apify.main(async () => {
     const input = await Apify.getInput();
@@ -38,4 +39,6 @@ Apify.main(async () => {
     log.info('Starting the crawl.');
     await crawler.run();
     log.info('Crawl finished.');
+
+    await Apify.pushData(result.offers);
 });
