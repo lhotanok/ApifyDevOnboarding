@@ -28,7 +28,8 @@ exports.handleDetail = async ({ request, page }, result) => {
 
     result[ASIN] = { title, description, url, keyword };
 
-    log.info(`New detail saved. Title: ${result[ASIN].title},
+    log.info(`New detail saved.
+    Title: ${result[ASIN].title},
     Url: ${result[ASIN].url},
     Keyword: ${result[ASIN].keyword}`);
 };
@@ -38,27 +39,31 @@ exports.handleOffers = async ({ request, page }, result) => {
 
     const sellerNames = await getElementsInnerTexts(page, '#aod-offer-soldBy [aria-label]');
     const prices = await scrapePrices(page);
-    log.info(`Sellers: ${sellerNames}`);
-    log.info(`Prices: ${prices}`);
+    const shippingPrices = await scrapeShippingPrices(page);
 
     const { ASIN } = request.userData;
     const detailResult = { ...result[ASIN] };
 
-    for (let i = prices.length - 1; i >= 0; i--) {
+    // Amazon sometimes adds extra item for pinned offer
+    while (sellerNames.length > prices.length) sellerNames.shift();
+
+    for (let i = 0; i < sellerNames.length; i++) {
         const sellerName = sellerNames[i];
         const price = prices[i];
-        const offerResult = { sellerName, price };
+        const shippingPrice = shippingPrices[i];
+
+        const offerResult = { sellerName, price, shippingPrice };
 
         const joinedResult = {
             ...detailResult,
             ...offerResult,
         };
 
+        await Apify.pushData(joinedResult);
+
         log.info('New offer scraped: ');
         log.info(`Title: ${joinedResult.title}, Url: ${joinedResult.url}`);
         log.info(`Seller name: ${joinedResult.sellerName}, Price: ${joinedResult.price}, Shipping: ${joinedResult.shippingPrice}`);
-
-        await Apify.pushData(joinedResult);
     }
 };
 
@@ -87,7 +92,7 @@ async function enqueuePagesToScrape(productASINs, requestQueue) {
 async function getElementInnerText(page, selector) {
     return page.evaluate((sel) => {
         const element = document.querySelector(sel);
-        return element ? element.innerText.trim() : '';
+        return element ? element.innerText.trim() : null;
     }, selector);
 }
 
@@ -97,13 +102,40 @@ async function getElementsInnerTexts(page, selector) {
 }
 
 async function scrapePrices(page) {
-    let pinnedOfferPrice = await getElementInnerText(page, '#aod-pinned-offer .a-price>.a-offscreen');
-    if (!pinnedOfferPrice) pinnedOfferPrice = await getElementInnerText(page, '#pinned-offer-top-id .a-price>.a-offscreen');
-
-    const otherOffersPrices = await getElementsInnerTexts(page, '#aod-offer-price .a-price>.a-offscreen');
+    const priceSubSelector = '.a-price>.a-offscreen';
+    const pinnedOfferPrice = await scrapePinnedOfferProperty(page, priceSubSelector);
+    const otherOffersPrices = await scrapeNotPinnedOffersPriceProperties(page, priceSubSelector);
 
     const prices = [pinnedOfferPrice];
     otherOffersPrices.forEach((offerPrice) => prices.push(offerPrice));
 
     return prices;
+}
+
+async function scrapeShippingPrices(page) {
+    const pinnedOfferShippingPrice = await scrapePinnedOfferProperty(page, '> div:nth-child(3) > span > span');
+
+    const otherOffersShippingPrices = await scrapeNotPinnedOffersPriceProperties(page,
+        '.a-fixed-right-grid-col.aod-padding-right-10.a-col-left > span > span');
+
+    const shippingPrices = [pinnedOfferShippingPrice];
+    otherOffersShippingPrices.forEach((shippingPrice) => shippingPrices.push(shippingPrice));
+
+    return shippingPrices.map((price) => price.split(' ')[1]);
+}
+
+async function scrapePinnedOfferProperty(page, subSelector) {
+    let pinnedOfferProperty = await getElementInnerText(page, `#aod-pinned-offer ${subSelector}`);
+    if (!pinnedOfferProperty) {
+        pinnedOfferProperty = await getElementInnerText(page, `#pinned-offer-top-id ${subSelector}`);
+    }
+
+    return pinnedOfferProperty;
+}
+
+async function scrapeNotPinnedOffersPriceProperties(page, subSelector) {
+    const otherOffersPriceProperties = await getElementsInnerTexts(page,
+        `#aod-offer-price ${subSelector}`);
+
+    return otherOffersPriceProperties;
 }
