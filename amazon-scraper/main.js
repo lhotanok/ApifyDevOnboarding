@@ -1,5 +1,7 @@
 const Apify = require('apify');
-const { handleStart, handleOffers, handleDetail } = require('./src/routes');
+const { handleStart } = require('./src/startPage');
+const { handleDetail } = require('./src/detailPage');
+const { handleOffers } = require('./src/offersPage');
 
 const { utils: { log } } = Apify;
 const result = {};
