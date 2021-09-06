@@ -9,7 +9,7 @@ jobs:
     steps:
       # Install dependencies and run tests
       - uses: actions/checkout@v2
-      - name: Amazon scraper
+      - name: Build and test Amazon scraper
         working-directory: ./amazon-scraper
       - run: npm install && npm run test
       # Build latest version
