@@ -1,0 +1,17 @@
+name: Test and build actor latest version
+on:
+  push:
+    branches:
+      - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      # Install dependencies and run tests
+      - uses: actions/checkout@v2
+      - run: npm install && npm run test
+      # Build latest version
+      - uses: distributhor/workflow-webhook@v1
+        env:
+          webhook_url: ${{ secrets.BUILD_ACTOR_URL }}
+          webhook_secret: ${{ secrets.APIFY_TOKEN }}
