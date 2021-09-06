@@ -1,4 +1,4 @@
-name: Test and build actor latest version
+name: Build actor latest version
 on:
   push:
     branches:
@@ -10,9 +10,9 @@ jobs:
       run:
         working-directory: ./amazon-scraper
     steps:
-      # Install dependencies and run tests
+      # Install dependencies
       - uses: actions/checkout@v2
-      - run: npm install && npm run test
+      - run: npm install
       # Build latest version
       - uses: distributhor/workflow-webhook@v1
         env:
