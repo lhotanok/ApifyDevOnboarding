@@ -8,7 +8,7 @@
       "title": "Keyword",
       "type": "string",
       "description": "Keyword to search for.",
-      "editor": "javascript",
+      "editor": "textfield",
       "prefill": "phone"
     }
   },
