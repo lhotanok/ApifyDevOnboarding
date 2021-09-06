@@ -8,7 +8,6 @@
       "title": "Keyword",
       "type": "string",
       "description": "Keyword to search for.",
-      "editor": "requestListSources"
     }
   },
   "required": [
