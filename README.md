@@ -1,4 +1,4 @@
-# Tutorial-II-Apify-SDK
+# Tutorial II Apify SDK
 
 ## Quiz
 
@@ -21,3 +21,15 @@
   - Puppeteer is designed to access website pages inside of a browser. It creates an instance of a lightweight browser by calling `await puppeteer.launch()`. One can use this `Browser` instance to browse different pages and interact with them using the Puppeteer's API which doesn't depend on jQuery. A single tab in the browser is represented by the instance of a `Page` class which provides a rich collection of methods for tab's manipulation.
 ### What is the default concurrency/parallelism the SDK uses?
   - It uses asynchronous functions to perform most of the tasks that are expected to run for some non-trivial time. When an async function is invoked, the script doesn't block so that it could continue and possibly call other async functions. Multiple async functions can run in parallel and their results can be accessed using the await statement.
+
+# Tutorial III Apify Actors & Webhooks
+
+## Quiz
+
+### How do you allocate more CPU for your actor run?
+  - By assigning higher memory capacity. Allocating 4096 MB of actor's memory results in usage of 1 CPU core. By changing the memory capacity a proportional amount of CPU power is set (2 GB correspond to the 50 % of the CPU core and so on). 
+### How can you get the exact time when the actor was started from within the running actor process?
+### Which are the default storages an actor run is allocated (connected to)?
+### Can you change the memory allocated to a running actor?
+### How can you run an actor with Puppeteer in a headful (non-headless) mode?
+### Imagine the server/instance the container is running on has a 32 GB, 8-core CPU. What would be the most performant (speed/cost) memory allocation for CheerioCrawler? (Hint: NodeJS processes cannot use user-created threads)
