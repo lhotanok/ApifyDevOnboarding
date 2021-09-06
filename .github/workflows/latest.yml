@@ -6,11 +6,12 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./amazon-scraper
     steps:
       # Install dependencies and run tests
       - uses: actions/checkout@v2
-      - name: Build and test Amazon scraper
-        working-directory: ./amazon-scraper
       - run: npm install && npm run test
       # Build latest version
       - uses: distributhor/workflow-webhook@v1
