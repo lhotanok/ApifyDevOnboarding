@@ -7,7 +7,7 @@
     "keyword": {
       "title": "Keyword",
       "type": "string",
-      "description": "Keyword to search for.",
+      "description": "Keyword to search for."
     }
   },
   "required": [
