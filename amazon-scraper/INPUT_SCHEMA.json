@@ -1,17 +1,17 @@
 {
-  "title": "PuppeteerCrawler Template",
-  "description": "lorem ipsum",
+  "title": "Amazon scraper",
+  "description": "Scrapes offers of products matching a given keyword.",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
-    "startUrls": {
-      "title": "Start URLs",
-      "type": "array",
-      "description": "URLs to start with.",
+    "keyword": {
+      "title": "Keyword",
+      "type": "string",
+      "description": "Keyword to search for.",
       "editor": "requestListSources"
     }
   },
   "required": [
-    "startUrls"
+    "keyword"
   ]
 }
