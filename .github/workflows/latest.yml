@@ -16,5 +16,20 @@ jobs:
       # Build latest version
       - uses: distributhor/workflow-webhook@v1
         env:
-          webhook_url: ${{ secrets.BUILD_ACTOR_URL }}
+          webhook_url: ${{ secrets.BUILD_AMAZON_SCRAPER_ACTOR_URL }}
+          webhook_secret: ${{ secrets.APIFY_TOKEN }}
+          
+  build-offers-filter:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./actor-offers-filter
+    steps:
+      # Install dependencies
+      - uses: actions/checkout@v2
+      - run: npm install
+      # Build latest version
+      - uses: distributhor/workflow-webhook@v1
+        env:
+          webhook_url: ${{ secrets.BUILD_OFFERS_FILTER_ACTOR_URL }}
           webhook_secret: ${{ secrets.APIFY_TOKEN }}
