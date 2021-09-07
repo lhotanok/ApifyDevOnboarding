@@ -3,9 +3,9 @@
 	"version": "0.0.1",
 	"description": "This is an example of an Apify actor.",
 	"dependencies": {
-		"apify": "^2.0.0"
+		"apify": "^2.0.0",
+		"node-fetch": "^3.0.0"
 	},
-	"devDependencies": {},
 	"scripts": {
 		"start": "node main.js",
 		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
