@@ -6,7 +6,7 @@
     "message": {
       "title": "Offers dataset",
       "type": "object",
-      "description": "Enter the input object.",
+      "description": "Enter the message object.",
       "editor": "json"
     }
   },

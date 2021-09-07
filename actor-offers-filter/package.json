@@ -1,15 +1,15 @@
 {
 	"name": "actor-offers-filter",
 	"version": "0.0.1",
-	"description": "This is an example of an Apify actor.",
+	"description": "This helper actor filters cheapest offers from the given dataset.",
+	"type": "module",
 	"dependencies": {
 		"apify": "^2.0.0",
-		"node-fetch": "^3.0.0"
+        "node-fetch": "^3.0.0"
 	},
 	"scripts": {
-		"start": "node main.js",
-		"test": "echo \"Error: oops, the actor has no tests yet, sad!\" && exit 1"
+		"start": "node --experimental-modules main.js"
 	},
-	"author": "It's not you it's me",
+	"author": "lhotanok",
 	"license": "ISC"
 }
