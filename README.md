@@ -31,6 +31,7 @@
 ### How can you get the exact time when the actor was started from within the running actor process?
   - Using the `APIFY_STARTED_AT` environment variable from the actor's process. It can be accessed from Node.js using the `process.env` object as follows: `process.env.APIFY_STARTED_AT`.
 ### Which are the default storages an actor run is allocated (connected to)?
+  - The actors run in Docker containers so they use local storage inside these containers during their run. Apart from that, an actor run is connected to `apify_storage` containing generated datasets and `key_value_stores` with `INPUT` and `OUTPUT` json files. Running actor's state is persisted as well in case an error occurred and the actor would need to continue from the point where it stopped running. 
 ### Can you change the memory allocated to a running actor?
 ### How can you run an actor with Puppeteer in a headful (non-headless) mode?
 ### Imagine the server/instance the container is running on has a 32 GB, 8-core CPU. What would be the most performant (speed/cost) memory allocation for CheerioCrawler? (Hint: NodeJS processes cannot use user-created threads)
