@@ -1,13 +1,13 @@
 {
-  "title": "Input schema for the hello_word actor.",
+  "title": "Input schema for the offers filter actor.",
   "type": "object",
   "schemaVersion": 1,
   "properties": {
     "message": {
-      "title": "Message",
-      "type": "string",
-      "description": "Just enter your hello world message.",
-      "editor": "textfield"
+      "title": "Offers dataset",
+      "type": "object",
+      "description": "Enter the input object.",
+      "editor": "json"
     }
   },
   "required": []
