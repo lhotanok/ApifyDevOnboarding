@@ -29,7 +29,9 @@
 ### How do you allocate more CPU for your actor run?
   - By assigning higher memory capacity. Allocating 4096 MB of actor's memory results in usage of 1 CPU core. By changing the memory capacity a proportional amount of CPU power is set (2 GB correspond to the 50 % of the CPU core and so on). 
 ### How can you get the exact time when the actor was started from within the running actor process?
+  - Using the `APIFY_STARTED_AT` environment variable from the actor's process. It can be accessed from Node.js using the `process.env` object as follows: `process.env.APIFY_STARTED_AT`.
 ### Which are the default storages an actor run is allocated (connected to)?
 ### Can you change the memory allocated to a running actor?
 ### How can you run an actor with Puppeteer in a headful (non-headless) mode?
 ### Imagine the server/instance the container is running on has a 32 GB, 8-core CPU. What would be the most performant (speed/cost) memory allocation for CheerioCrawler? (Hint: NodeJS processes cannot use user-created threads)
+  - 4 GB memory and the corresponding 1 CPU core as `CheerioCrawler` running in Node.js can not use more than 1 thread. Thus setup with more CPU cores would not increase crawler's speed.
