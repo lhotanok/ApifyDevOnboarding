@@ -55,3 +55,23 @@
   - An actor's build was started faster when using `apify push` compared to `git push` + GitHub CI with webhooks for actor's build on Apify platform.
   - I would also appreciate `apify pull` command to be able to make changes to actor's source code directly on the Apify platform and than pull changes to my local device similarly to using git.
   - On the other hand, I enjoy having source code in one place on GitHub so I would like to take advantages of both `git push` and `apify push` commands to have my code deployed on GitHub and have faster build start-up at the same time. However, that would lead to having unsynchronized code in more places so it would break eventually.
+
+# Tutorial V Tasks, Storage, API & Client
+
+## Quiz
+
+### What is the relationship between actor and task?
+  - A task stores actor's specific configuration and running a task causes running a corresponding actor with this configuration set. Tasks can be created for both private and public actors, even for those that belong to a different user.
+  - Both actor and task can be run manually from the Apify platform or using the specific API endpoint.
+### What are the differences between default (unnamed) and named storage? Which one would you choose for everyday usage?
+  - The main difference is their expiration period. Unnamed storages expire in 7 days whereas named storages are preserved forever. Default unnamed storages are more suitable for daily usage as we don't need to manually assign names to them and they are deleted automatically when we no longer need them. They can be easily accessed by their unique IDs.
+  - On the other hand, if we want to emphasize storage's purpose, giving it a fitting name can help with storage identification and usage, especially outside the Apify console.
+### What is the relationship between the Apify API and the Apify client? Are there any significant differences?
+  - The Apify API offers programmatic access to the Apify platform through RESTful HTTP endpoints. Apify client (`apify-client` NPM or PyPI package) is the official library for accessing Apify API from external applications. Apify provides client libraries for JavaScript and Python applications. JS library can be used both from Node.js and browser.
+  -  The functions from Apify client libraries are mapped on the API endpoints and they also have the same parameters. 
+### Is it possible to use a request queue for deduplication of product IDs? If yes, how would you do that?
+  - A request queue provides an interface for checking whether a specific URL was already enqueued. If a product ID was part of the enqueued URL (as it is with an Amazon scraper example) it could be checked against known URLs. If an URL containing same product ID was present already, adding this URL to the request queue again would cause product duplication.
+### What is data retention and how does it work for all types of storage (default and named)?
+  - It is an event of data expiration. Default unnamed storages expire after 1 week whereas named storages are retained indefinitely. 
+### How do you pass input when running an actor or task via the API?
+  - An actor or a task can be run by sending a POST request to a corresponding API endpoint. An input can be passed as a JSON object in the POST payload. In this case, object's fields override actor's default input configuration.
