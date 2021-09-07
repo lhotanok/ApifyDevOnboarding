@@ -34,5 +34,6 @@
   - The actors run in Docker containers so they use local storage inside these containers during their run. Apart from that, an actor run is connected to `apify_storage` containing generated datasets and `key_value_stores` with `INPUT` and `OUTPUT` json files. Running actor's state is persisted as well in case an error occurred and the actor would need to continue from the point where it stopped running. 
 ### Can you change the memory allocated to a running actor?
 ### How can you run an actor with Puppeteer in a headful (non-headless) mode?
+  - By setting the value of `launchContext.launchOptions.headless` to `false` when calling the `PuppeteerCrawler` constructor.
 ### Imagine the server/instance the container is running on has a 32 GB, 8-core CPU. What would be the most performant (speed/cost) memory allocation for CheerioCrawler? (Hint: NodeJS processes cannot use user-created threads)
   - 4 GB memory and the corresponding 1 CPU core as `CheerioCrawler` running in Node.js can not use more than 1 thread. Thus setup with more CPU cores would not increase crawler's speed.
