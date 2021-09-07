@@ -6,7 +6,7 @@ const { utils: { log } } = Apify;
 Apify.main(async () => {
     const input = await Apify.getInput();
 
-    const datasetID = input.message.resource.defaultDatasetId;
+    const datasetID = input.resource.defaultDatasetId;
     const response = await fetch(`https://api.apify.com/v2/datasets/${datasetID}/items?`);
     const offers = await response.json();
 
