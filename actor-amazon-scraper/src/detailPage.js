@@ -4,8 +4,6 @@ const { getElementInnerText } = require('./pageEvaluator');
 const { utils: { log } } = Apify;
 
 exports.handleDetail = async ({ request, page }, result) => {
-    log.info('Crawling detail page');
-
     const title = await getElementInnerText(page, '#productTitle');
     const description = await getElementInnerText(page, '#productDescription');
 

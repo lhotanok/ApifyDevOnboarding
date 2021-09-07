@@ -4,9 +4,10 @@ const { getElementInnerText, getElementsInnerTexts } = require('./pageEvaluator'
 const { utils: { log } } = Apify;
 
 exports.handleOffers = async ({ request, page }, result) => {
-    await page.waitForSelector('#aod-offer-soldBy [aria-label]');
+    const sellerNamesSelector = '#aod-offer-soldBy [aria-label]';
+    await page.waitForSelector(sellerNamesSelector);
 
-    const sellerNames = await getElementsInnerTexts(page, '#aod-offer-soldBy [aria-label]');
+    const sellerNames = await getElementsInnerTexts(page, sellerNamesSelector);
     const prices = await scrapePrices(page);
     const shippingPrices = await scrapeShippingPrices(page);
 

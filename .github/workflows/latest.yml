@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./amazon-scraper
+        working-directory: ./actor-amazon-scraper
     steps:
       # Install dependencies
       - uses: actions/checkout@v2
