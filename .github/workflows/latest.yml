@@ -1,10 +1,10 @@
-name: Build actor latest version
+name: Build actors latest versions
 on:
   push:
     branches:
       - main
 jobs:
-  test:
+  build-amazon-scraper:
     runs-on: ubuntu-latest
     defaults:
       run:
