@@ -12,8 +12,8 @@ exports.handleStart = async ({ page }, requestQueue) => {
 
     log.info(`Product ASINs from the first page: ${ASINs}`);
 
-    const testASINs = [ASINs[0], ASINs[1], ASINs[2]];
-    await enqueuePagesToScrape(testASINs, requestQueue);
+    // const testASINs = [ASINs[0], ASINs[1], ASINs[2]];
+    await enqueuePagesToScrape(ASINs, requestQueue);
 };
 
 /**
