@@ -33,7 +33,45 @@
 ### Which are the default storages an actor run is allocated (connected to)?
   - The actors run in Docker containers so they use local storage inside these containers during their run. Apart from that, an actor run is connected to `apify_storage` containing generated datasets and `key_value_stores` with `INPUT` and `OUTPUT` json files. Running actor's state is persisted as well in case an error occurred and the actor would need to continue from the point where it stopped running. 
 ### Can you change the memory allocated to a running actor?
+  - An actor can optimize their memory usage during the run through `APIFY_MEMORY_MBYTES` environment variable.
 ### How can you run an actor with Puppeteer in a headful (non-headless) mode?
-  - By setting the value of `launchContext.launchOptions.headless` to `false` when calling the `PuppeteerCrawler` constructor.
+  - By setting the value of `launchContext.launchOptions.headless` to `false` when calling the `PuppeteerCrawler` constructor. The value can be obtained using `APIFY_HEADLESS` environment variable - if this variable is set to 1, the headless mode is activated.
 ### Imagine the server/instance the container is running on has a 32 GB, 8-core CPU. What would be the most performant (speed/cost) memory allocation for CheerioCrawler? (Hint: NodeJS processes cannot use user-created threads)
   - 4 GB memory and the corresponding 1 CPU core as `CheerioCrawler` running in Node.js can not use more than 1 thread. Thus setup with more CPU cores would not increase crawler's speed.
+
+# Tutorial IV Apify CLI & Source Code
+
+## Quiz
+
+### Do you have to rebuild an actor each time the source code is changed?
+  - On the Apify platform, it is needed to rebuild an actor to propagate changes of the source code. When running an actor, the last successful build of Docker image is used. If I make changes to the source code on Apify platform I receive the following message: *To apply your changes, you need to build the actor.*
+  - However, when I modify code locally and then run `apify run -p`, the actor is run by executing `npm start`. No Docker image is built in this case and the actor is run in the context of the current operating system. Skipping the build phase makes actor's development and testing faster, especially when making small changes to the code.
+### What is the difference between pushing your code changes and creating a pull request?
+  - Pull requests are used to discuss and review code changes between multiple colleagues. Typically, modifications are made in the separate branches and once the developer is ready to share his code, he creates a pull request to merge his working branch with a different branch (e.g. main branch).
+  - Pushing code changes to a remote repository is done regularly and does not require code reviews and pull requests each time. Code modification is done on a specific branch and the individual changes are commited and pushed to a remote git repository. Each branch has its own history of commits.
+  - A developer who is working alone on a project can push directly to the main branch as it won't create accidental merge conflicts (as long as the modification of same files from different machines is avoided).
+### How does the apify push command work? Is it worth using, in your opinion?
+  - I tested this command for deploying code to an existing actor on Apify platform. Actor's source code was originally hosted on GitHub. Calling `apify push [ACTORID]` deployed all my actor-related local files to the Apify platform. So it is very useful for local development combined with multi-file code hosted on Apify.
+  - An actor's build was started faster when using `apify push` compared to `git push` + GitHub CI with webhooks for actor's build on Apify platform.
+  - I would also appreciate `apify pull` command to be able to make changes to actor's source code directly on the Apify platform and than pull changes to my local device similarly to using git.
+  - On the other hand, I enjoy having source code in one place on GitHub so I would like to take advantages of both `git push` and `apify push` commands to have my code deployed on GitHub and have faster build start-up at the same time. However, that would lead to having unsynchronized code in more places so it would break eventually.
+
+# Tutorial V Tasks, Storage, API & Client
+
+## Quiz
+
+### What is the relationship between actor and task?
+  - A task stores actor's specific configuration and running a task causes running a corresponding actor with this configuration set. Tasks can be created for both private and public actors, even for those that belong to a different user.
+  - Both actor and task can be run manually from the Apify platform or using the specific API endpoint.
+### What are the differences between default (unnamed) and named storage? Which one would you choose for everyday usage?
+  - The main difference is their expiration period. Unnamed storages expire in 7 days whereas named storages are preserved forever. Default unnamed storages are more suitable for daily usage as we don't need to manually assign names to them and they are deleted automatically when we no longer need them. They can be easily accessed by their unique IDs.
+  - On the other hand, if we want to emphasize storage's purpose, giving it a fitting name can help with storage identification and usage, especially outside the Apify console.
+### What is the relationship between the Apify API and the Apify client? Are there any significant differences?
+  - The Apify API offers programmatic access to the Apify platform through RESTful HTTP endpoints. Apify client (`apify-client` NPM or PyPI package) is the official library for accessing Apify API from external applications. Apify provides client libraries for JavaScript and Python applications. JS library can be used both from Node.js and browser.
+  -  The functions from Apify client libraries are mapped on the API endpoints and they also have the same parameters. 
+### Is it possible to use a request queue for deduplication of product IDs? If yes, how would you do that?
+  - A request queue provides an interface for checking whether a specific URL was already enqueued. If a product ID was part of the enqueued URL (as it is with an Amazon scraper example) it could be checked against known URLs. If an URL containing same product ID was present already, adding this URL to the request queue again would cause product duplication.
+### What is data retention and how does it work for all types of storage (default and named)?
+  - It is an event of data expiration. Default unnamed storages expire after 1 week whereas named storages are retained indefinitely. 
+### How do you pass input when running an actor or task via the API?
+  - An actor or a task can be run by sending a POST request to a corresponding API endpoint. An input can be passed as a JSON object in the POST payload. In this case, object's fields override actor's default input configuration.
