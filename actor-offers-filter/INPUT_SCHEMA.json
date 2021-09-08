@@ -4,11 +4,13 @@
   "schemaVersion": 1,
   "properties": {
     "resource": {
-      "title": "Offers dataset",
+      "title": "Resource object",
       "type": "object",
       "description": "Enter the resource object.",
       "editor": "json"
     }
   },
-  "required": []
+  "required": [
+    "resource"
+  ]
 }
