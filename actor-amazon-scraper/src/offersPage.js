@@ -45,7 +45,7 @@ async function saveOfferToDatalist(detailResult, offerResult) {
 async function scrapePrices(page) {
     const priceSubSelector = '.a-price>.a-offscreen';
     const pinnedOfferPrice = await scrapePinnedOfferProperty(page, priceSubSelector);
-    const otherOffersPrices = await scrapeNotPinnedOffersPriceProperties(page, priceSubSelector);
+    const otherOffersPrices = await scrapeNotPinnedOffersPriceProperties(page, [priceSubSelector]);
 
     const prices = [pinnedOfferPrice];
     otherOffersPrices.forEach((offerPrice) => prices.push(offerPrice));
@@ -58,15 +58,26 @@ async function scrapeShippingPrices(page) {
         '> div:nth-child(3) > span > span');
 
     const otherOffersShippingPrices = await scrapeNotPinnedOffersPriceProperties(page,
-        '.a-fixed-right-grid-col.aod-padding-right-10.a-col-left > span > span');
+        ['.a-fixed-right-grid-col.aod-padding-right-10.a-col-left > span > span',
+            '#mir-layout-DELIVERY_BLOCK-slot-DELIVERY_MESSAGE']);
 
     const shippingPrices = [pinnedOfferShippingPrice];
     otherOffersShippingPrices.forEach((shippingPrice) => shippingPrices.push(shippingPrice));
 
-    return shippingPrices.map((price) => {
-        if (!price) return price;
-        return price.split(' ')[1];
+    const parsedShippingPrices = shippingPrices.map((price) => {
+        if (price) {
+            const shippingInfoFragments = price.split(' ');
+            for (const fragment of shippingInfoFragments) {
+                if (/\d/.test(fragment)) { // check if fragment contains number
+                    return fragment;
+                }
+            }
+        }
+
+        return null;
     });
+
+    return parsedShippingPrices;
 }
 
 async function scrapePinnedOfferProperty(page, subSelector) {
@@ -79,17 +90,22 @@ async function scrapePinnedOfferProperty(page, subSelector) {
     return pinnedOfferProperty;
 }
 
-async function scrapeNotPinnedOffersPriceProperties(page, subSelector) {
-    return page.evaluate((subSel) => {
+async function scrapeNotPinnedOffersPriceProperties(page, subSelectors) {
+    return page.evaluate((subSels) => {
         const priceProperties = [];
 
-        document.querySelectorAll('#aod-offer-list #aod-offer')
+        document.querySelectorAll('#aod-offer-list #aod-offer ')
             .forEach((element) => {
-                const property = element.querySelector(subSel);
+                let property = null;
+                for (let i = 0; i < subSels.length; i++) {
+                    property = element.querySelector(subSels[i]);
+                    if (property) break;
+                }
+
                 if (!property) priceProperties.push(property);
                 else priceProperties.push(property.innerText);
             });
 
         return priceProperties;
-    }, subSelector);
+    }, subSelectors);
 }
