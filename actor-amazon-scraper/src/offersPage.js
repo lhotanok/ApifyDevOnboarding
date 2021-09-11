@@ -1,6 +1,7 @@
 const Apify = require('apify');
 const { getElementInnerText, getElementsInnerTexts } = require('./pageEvaluator');
 
+const { saveSnapshot } = Apify.utils.puppeteer;
 const { utils: { log } } = Apify;
 
 exports.handleOffers = async ({ request, page }, result) => {
