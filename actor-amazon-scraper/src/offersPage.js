@@ -24,6 +24,8 @@ exports.handleOffers = async ({ request, page }, result) => {
 
         await saveOfferToDatalist(detailResult, { sellerName, price, shippingPrice });
     }
+
+    await saveSnapshot(page, { key: `test-screen-${ASIN}` });
 };
 
 async function saveOfferToDatalist(detailResult, offerResult) {
