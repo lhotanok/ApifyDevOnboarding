@@ -68,7 +68,7 @@ async function scrapeShippingPrices(page) {
         if (price) {
             const shippingInfoFragments = price.split(' ');
             for (const fragment of shippingInfoFragments) {
-                if (/\d/.test(fragment)) { // check if fragment contains number
+                if (fragment[0] === '$') { // check if fragment is price
                     return fragment;
                 }
             }
