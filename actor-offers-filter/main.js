@@ -1,19 +1,19 @@
-import fetch from 'node-fetch';
-import Apify from 'apify';
+const Apify = require('apify');
+const ApifyClient = require('apify-client');
 
 const { utils: { log } } = Apify;
 
 Apify.main(async () => {
     const input = await Apify.getInput();
-
     const datasetID = input.resource.defaultDatasetId;
-    const response = await fetch(`https://api.apify.com/v2/datasets/${datasetID}/items?`);
-    const offers = await response.json();
+
+    const client = new ApifyClient();
+    const { items } = await client.dataset(datasetID).listItems();
 
     log.info(`Dataset ID is: ${datasetID}`);
     
     log.info('Start filtering cheapest offers.');
-    const cheapestOffers = getCheapestOffers(offers);
+    const cheapestOffers = getCheapestOffers(items);
 
     await Apify.pushData(cheapestOffers);
     log.info('Saved cheapest offers into default dataset.');
