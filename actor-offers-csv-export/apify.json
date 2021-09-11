@@ -1,0 +1,7 @@
+{
+	"name": "actor-offers-csv-export",
+	"version": "0.0",
+	"buildTag": "latest",
+	"env": null,
+	"template": "example_hello_world"
+}

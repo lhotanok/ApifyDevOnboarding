@@ -1,0 +1,35 @@
+{
+  "title": "Input schema for the offers-csv-export actor.",
+  "type": "object",
+  "schemaVersion": 1,
+  "properties": {
+    "memory": {
+      "title": "Memory",
+      "type": "integer",
+      "description": "Select memory in megabytes. Has to be power of 2.",
+      "default": 1024,
+      "maximum": 32768,
+      "unit": "MB"
+    },
+    "useClient": {
+      "title": "Use client",
+      "type": "boolean",
+      "description": "Specifies if apify client or pure API should be used.",
+      "default": true
+    },
+    "fields": {
+      "title": "Fields",
+      "type": "array",
+      "description": "Enter dataset fields you want to export to CSV",
+      "prefill": ["title", "url", "price"],
+      "editor": "stringList"
+    },
+    "maxItems": {
+      "title": "Max items",
+      "type": "integer",
+      "description": "Fill maximum number of items you want to export.",
+      "default": 10
+    }
+  },
+  "required": []
+}
