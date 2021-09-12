@@ -1,4 +1,5 @@
 import Apify, { main, getInput, setValue } from 'apify';
+import ApifyClient from 'apify-client';
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
 
@@ -13,31 +14,30 @@ main(async () => {
     const items = useClient ? await getTaskRunResultUsingClient(taskName, input)
         : await getTaskRunResultUsingApi(taskName, input);
 
-    if (items.error) {
-        log.info(`Task run error: ${items.error.message}`);
-    } else {
-        log.info(`Output items: ${items}`);
-        await setValue('OUTPUT', items, { contentType: 'text/csv' }); // Save output
-    }
+    log.info(`Output items: ${items}`);
+    await setValue('OUTPUT', items, { contentType: 'text/csv' });
 
-    log.info('Export finished.')
+    log.info('Export finished.');
 });
 
 /**
  * @param {String} taskId Task id or unique name
  * @param {Object} input Input object for task run configuration
- * @returns {Array} Dataset items
+ * @returns {String} Dataset items in csv text format
  */
 async function getTaskRunResultUsingApi(taskId, input) {
     const { memory, fields, maxItems } = input;
 
     const url = new URL(`https://api.apify.com/v2/actor-tasks/${taskId}/run-sync-get-dataset-items?`);
 
-    const params = new URLSearchParams(url.search);
-    params.set('format', 'csv');
-    params.set('memory', memory);
-    params.set('limit', maxItems);
-    params.set('fields', fields.join(','));
+    const queryParams = {
+        memory,
+        format: 'csv',
+        limit: maxItems,
+        fields: fields.join(',')
+    };
+
+    url.search = new URLSearchParams(queryParams);
 
     const requestBody = {
         headers: {
@@ -46,7 +46,7 @@ async function getTaskRunResultUsingApi(taskId, input) {
         }
     };
 
-    const response = await fetch(url.toString() + params.toString(), requestBody);
+    const response = await fetch(url.href, requestBody);
 
     return await response.text();
 }
@@ -54,8 +54,23 @@ async function getTaskRunResultUsingApi(taskId, input) {
 /**
  * @param {String} taskId Task id or unique name
  * @param {Object} input Input object for task run configuration
- * @returns {Object} Result data
+ * @returns {Buffer} Dataset items buffered in csv text format
  */
 async function getTaskRunResultUsingClient(taskId, input) {
+    const apifyClient = new ApifyClient({ 'token': process.env.APIFY_TOKEN });
+    const taskClient = apifyClient.task(taskId);
 
+    const { memory, fields, maxItems } = input;
+
+    const run = await taskClient.call({ memory });
+    const runClient = apifyClient.run(run.id);
+
+    const datasetClient = runClient.dataset();
+
+    const downloadOptions = {
+        limit: maxItems,
+        fields
+    };
+    
+    return await datasetClient.downloadItems('csv', downloadOptions);  
 }
