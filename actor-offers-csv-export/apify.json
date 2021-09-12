@@ -2,6 +2,8 @@
 	"name": "actor-offers-csv-export",
 	"version": "0.0",
 	"buildTag": "latest",
-	"env": null,
+	"env": {
+		"APIFY_TOKEN": "@APIFY_TOKEN"
+	},
 	"template": "example_hello_world"
 }

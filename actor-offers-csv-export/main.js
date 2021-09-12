@@ -1,27 +1,61 @@
-// This is the main Node.js source code file of your actor.
-// It is referenced from the "scripts" section of the package.json file,
-// so that it can be started by running "npm start".
+import Apify, { main, getInput, setValue } from 'apify';
+import fetch from 'node-fetch';
+import { URLSearchParams } from 'url';
 
-// Import Apify SDK. For more information, see https://sdk.apify.com/
-const Apify = require('apify');
+const { utils: { log } } = Apify;
 
-Apify.main(async () => {
-    // Get input of the actor.
-    // If you'd like to have your input checked and have Apify display
-    // a user interface for it, add INPUT_SCHEMA.json file to your actor.
-    // For more information, see https://docs.apify.com/actors/development/input-schema
-    const input = await Apify.getInput();
-    console.log('Input:');
-    console.dir(input);
+main(async () => {
+    const input = await getInput();
+    const { useClient } = input;
 
-    // Do something useful here...
+    const taskName = 'lhotanok~laptop-search-task';
 
-    // Save output
-    const output = {
-        receivedInput: input,
-        message: 'Hello sir!',
-    };
-    console.log('Output:');
-    console.dir(output);
-    await Apify.setValue('OUTPUT', output);
+    const items = useClient ? await getTaskRunResultUsingClient(taskName, input)
+        : await getTaskRunResultUsingApi(taskName, input);
+
+    if (items.error) {
+        log.info(`Task run error: ${items.error.message}`);
+    } else {
+        log.info(`Output items: ${items}`);
+        await setValue('OUTPUT', items, { contentType: 'text/csv' }); // Save output
+    }
+
+    log.info('Export finished.')
 });
+
+/**
+ * @param {String} taskId Task id or unique name
+ * @param {Object} input Input object for task run configuration
+ * @returns {Array} Dataset items
+ */
+async function getTaskRunResultUsingApi(taskId, input) {
+    const { memory, fields, maxItems } = input;
+
+    const url = new URL(`https://api.apify.com/v2/actor-tasks/${taskId}/run-sync-get-dataset-items?`);
+
+    const params = new URLSearchParams(url.search);
+    params.set('format', 'csv');
+    params.set('memory', memory);
+    params.set('limit', maxItems);
+    params.set('fields', fields.join(','));
+
+    const requestBody = {
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `bearer ${process.env.APIFY_TOKEN}`,
+        }
+    };
+
+    const response = await fetch(url.toString() + params.toString(), requestBody);
+
+    return await response.text();
+}
+
+/**
+ * @param {String} taskId Task id or unique name
+ * @param {Object} input Input object for task run configuration
+ * @returns {Object} Result data
+ */
+async function getTaskRunResultUsingClient(taskId, input) {
+
+}
