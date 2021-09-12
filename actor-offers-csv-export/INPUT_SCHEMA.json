@@ -7,7 +7,7 @@
       "title": "Memory",
       "type": "integer",
       "description": "Select memory in megabytes. Has to be power of 2.",
-      "default": 1024,
+      "default": 4096,
       "maximum": 32768,
       "unit": "MB"
     },

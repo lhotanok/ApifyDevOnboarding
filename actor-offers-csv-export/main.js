@@ -15,7 +15,10 @@ main(async () => {
         : await getTaskRunResultUsingApi(taskName, input);
 
     log.info(`Output items: ${items}`);
-    await setValue('OUTPUT', items, { contentType: 'text/csv' });
+
+    // sets .csv extension automatically (works locally but not on Apify platform)
+    // if called with 'OUTPUT.csv' parameter locally, OUTPUT.csv.csv is created 👀
+    await setValue('OUTPUT.csv', items, { contentType: 'text/csv' });
 
     log.info('Export finished.');
 });
