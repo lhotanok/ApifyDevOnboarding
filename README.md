@@ -75,3 +75,64 @@
   - It is an event of data expiration. Default unnamed storages expire after 1 week whereas named storages are retained indefinitely. 
 ### How do you pass input when running an actor or task via the API?
   - An actor or a task can be run by sending a POST request to a corresponding API endpoint. An input can be passed as a JSON object in the POST payload. In this case, object's fields override actor's default input configuration.
+
+# Tutorial VI Apify Proxy & Bypassing Antiscraping Software
+
+## Quiz
+
+### What types of proxies does the Apify Proxy include? What are the main differences between them?
+
+- **Datacenter proxy**
+  - Rotates datacenter IP addresses which makes the crawling fast and cost effective. However, datacenter IPs are more prone to get blocked by the anti-scraping software.
+  - Apify offers **shared** or **dedicated** datacenter IPs. Shared IPs are cheaper but the blocking rate depends on other users' actions which makes it difficult to predict. 
+- **Residential proxy**
+  - Uses real users IP addresses from their households or offices. Thanks to that, it is almost impossible to recognize and block programmatic access when using this proxy. Residential IPs are more expensive and their usage is charged by the amount of data transfer. Dedicated IPs are reserved for one user so they make a good choice in cases where stable crawling rate is important.
+- **Google SERP proxy**
+  - It is designed specifically for extraction of Google search results. Currently, Google Search and Google Shopping services are supported.
+
+### Which proxies (proxy groups) can users access with the Apify Proxy trial? How long does this trial last?
+
+- The trial lasts for 30 days and only datacenter and Google SERP proxies can be used during this trial. 
+- For datacenter proxies, there are 2 groups available for the trial according to the overview in Apify console. These are BUYPROXIES94952 and SHADER which are both proxies from USA. The group for Google SERP is called GOOGLE_SERP.
+
+### How can you prevent a problem that one of the hardcoded proxy groups that a user is using stops working (a problem with a provider)? What should be the best practices?
+
+- A problem with a provider can not be prevented so we should be prepared for this scenario and handle potential errors properly. If the hardcoded proxy is not required and another proxy can be used instead, we might the rotating system to find a new proxy.
+- We should periodically check the availability of the hardcoded proxy groups and once they're working again, we might revert back to using them.
+
+### Does it make sense to rotate proxies when you are logged in?
+
+- Log in is only valid per one session and by rotating proxies, new sessions are created. So if we need to stay logged in, rotating proxies won't be useful as we have to keep the same session.
+- The session we're logged in has to be persisted. It means we have to use the same IP address for all related connections.  A session expires after 26 hours if used with datacentre proxies and for residential proxies, it persists 1 minute. Its expiry time is reset whenever the session is used.
+
+### Construct a proxy URL that will select proxies **only** from the US (without specific groups).
+
+- http://country-US:<PROXY_PASSWORD>@proxy.apify.com:8000
+
+### What do you need to do to rotate proxies (one proxy usually has one IP)? How does this differ for Cheerio Scraper and Puppeteer Scraper?
+
+- For each request, a new proxy server is used from the pool of available proxy servers. Typically, 1 IP address is assigned to 1 proxy server.
+- It's important to work with a large amount of proxies. Sending too many requests to the same website using the same proxy might result in so called proxy burning. In such case, a proxy is banned by the website and all subsequent requests sent from it get blocked.
+
+### Try to set up the Apify Proxy (using any group or `auto`) in your browser. This is useful for testing how websites behave with proxies from specific countries (although most are from the US). You can try [Switchy Omega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif) extension but there are many more. Were you successful?
+
+- I used Switchy Omega with `auto` username and managed to get status `Connected` after opening http://proxy.apify.com/. But when navigating to other websites, I got ERR_PROXY_CONNECTION_FAILED error. I added another proxy configuration with username `groups-SHADER+BUYPROXIES94952` and it started working for both proxy.apify.com `Connected` status and website browsing. I also noticed I wasn't able to load https://console.apify.com/ under proxy.
+
+### Name a few different ways a website can prevent you from scraping it.
+
+- **IP address blocking**
+  - Typically specific ranges of IP addresses are blocked (such as AWS IP address ranges).
+- **IP rate limiting**
+  - If too many requests are sent from the same IP address, a website might block this IP address or throw a CAPTCHA test.
+  - Can be bypassed by limiting the number of pages scraped concurrently (through the `maxConcurrency` option) or by using proxy servers and IPs rotation.
+- **HTTP request analysis**
+  - Checks browser's HTTP signatures. Can be bypassed by using a real web browser, e.g. headless Chrome or even better work around with browser signatures emulation while sending raw HTTP requests. Apify SDK comes with a `requestAsBrowser()` function which emulates the HTTP headers of the Firefox browser. 
+- **User behaviour analysis**
+  - Measures the period for which the user stays on each page, analyses mouse movements or form filling speed.
+- **Browser fingerprinting**
+  - Checks browser's fingerprint consisting of browser type and version, time zone, installed extensions and other info. 
+
+### Do you know any software companies that develop anti-scraping solutions? Have you ever encountered them on a website?
+
+- Various CAPTCHA tests are often used, I've encountered them for example on websites that provide file downloading.
+  - Used e.g. by Google's reCAPTCHA.
