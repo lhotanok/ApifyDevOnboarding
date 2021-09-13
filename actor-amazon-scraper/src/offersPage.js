@@ -13,7 +13,6 @@ exports.handleOffers = async ({ request, page }, result) => {
     const shippingPrices = await scrapeShippingPrices(page);
 
     const { ASIN } = request.userData;
-    const detailResult = { ...result[ASIN] };
 
     // Amazon sometimes adds extra item for pinned offer
     while (sellerNames.length > prices.length) sellerNames.shift();
@@ -23,24 +22,12 @@ exports.handleOffers = async ({ request, page }, result) => {
         const price = prices[i];
         const shippingPrice = shippingPrices[i];
 
-        await saveOfferToDatalist(detailResult, { sellerName, price, shippingPrice });
+        result[ASIN].offers.push({ sellerName, price, shippingPrice });
+        log.info(`New offer scraped. Seller name: ${sellerName}, Price: ${price}, Shipping: ${shippingPrice}`);
     }
 
     await saveSnapshot(page, { key: `test-screen-${ASIN}` });
 };
-
-async function saveOfferToDatalist(detailResult, offerResult) {
-    const joinedResult = {
-        ...detailResult,
-        ...offerResult,
-    };
-
-    await Apify.pushData(joinedResult);
-
-    log.info('New offer scraped: ');
-    log.info(`Title: ${joinedResult.title}, Url: ${joinedResult.url}`);
-    log.info(`Seller name: ${joinedResult.sellerName}, Price: ${joinedResult.price}, Shipping: ${joinedResult.shippingPrice}`);
-}
 
 async function scrapePrices(page) {
     const priceSubSelector = '.a-price>.a-offscreen';

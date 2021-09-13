@@ -2,7 +2,7 @@ const Apify = require('apify');
 
 const { utils: { log } } = Apify;
 
-exports.handleStart = async ({ page }, requestQueue) => {
+exports.handleStart = async ({ page }, requestQueue, result) => {
     log.info('Crawling start page');
     await page.waitForSelector('div[data-asin]');
 
@@ -11,6 +11,10 @@ exports.handleStart = async ({ page }, requestQueue) => {
             .filter((ASIN) => ASIN !== ''));
 
     log.info(`Product ASINs from the first page: ${ASINs}`);
+
+    ASINs.forEach((ASIN) => {
+        result[ASIN] = { detail: {}, offers: [] };
+    });
 
     const testASINs = [ASINs[0], ASINs[1], ASINs[2], ASINs[3]];
     await enqueuePagesToScrape(testASINs, requestQueue);

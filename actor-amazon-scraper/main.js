@@ -52,13 +52,28 @@ Apify.main(async () => {
                     case 'DETAIL':
                         return handleDetail(context, result);
                     default:
-                        return handleStart(context, requestQueue);
+                        return handleStart(context, requestQueue, result);
                 }
             }
         },
     });
 
     log.info('Starting the crawl.');
+
     await crawler.run();
+    await saveResult();
+
     log.info('Crawl finished.');
 });
+
+async function saveResult() {
+    const joinedResults = [];
+
+    Object.keys(result).forEach((ASIN) => {
+        const { detail, offers } = result[ASIN];
+
+        joinedResults.push(...offers.map((offer) => ({ ...detail, ...offer })));
+    });
+
+    await Apify.pushData(joinedResults);
+}
