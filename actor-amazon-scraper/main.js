@@ -19,6 +19,7 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         maxRequestsPerCrawl: 100,
+        maxConcurrency: 1,
         requestList,
         requestQueue,
         launchContext: {
@@ -26,6 +27,13 @@ Apify.main(async () => {
             stealth: true,
         },
         proxyConfiguration,
+        useSessionPool: true,
+        sessionPoolOptions: {
+            maxPoolSize: 1, // single IP will be used by all browsers until it fails
+            sessionOptions: {
+                maxUsageCount: 5, // rotates the IP after 5 successful requests
+            },
+        },
         handlePageFunction: async (context) => {
             const { url, userData: { label } } = context.request;
 

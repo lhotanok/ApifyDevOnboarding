@@ -113,6 +113,7 @@
 
 - For each request, a new proxy server is used from the pool of available proxy servers. Typically, 1 IP address is assigned to 1 proxy server.
 - It's important to work with a large amount of proxies. Sending too many requests to the same website using the same proxy might result in so called proxy burning. In such case, a proxy is banned by the website and all subsequent requests sent from it get blocked.
+- `CheerioScraper` sends raw HTTP requests so it can easily assign a different proxy to each request. `PuppeteerCrawler` needs to work with the `puppeteerPool.retire(page.browser())` function as the whole browser has to be retired. 
 
 ### Try to set up the Apify Proxy (using any group or `auto`) in your browser. This is useful for testing how websites behave with proxies from specific countries (although most are from the US). You can try [Switchy Omega](https://chrome.google.com/webstore/detail/proxy-switchyomega/padekgcemlokbadohgkifijomclgjgif) extension but there are many more. Were you successful?
 
