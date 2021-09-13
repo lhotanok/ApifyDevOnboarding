@@ -35,17 +35,25 @@ Apify.main(async () => {
             },
         },
         handlePageFunction: async (context) => {
-            const { url, userData: { label } } = context.request;
+            const { request, page, session } = context;
+            const { url, userData: { label } } = request;
 
             log.info('Page opened.', { label, url });
 
-            switch (label) {
-                case 'OFFERS':
-                    return handleOffers(context, result);
-                case 'DETAIL':
-                    return handleDetail(context, result);
-                default:
-                    return handleStart(context, requestQueue);
+            const title = await page.title();
+            log.info(`Page title: ${title}`);
+
+            if (title === 'Sorry! Something went wrong!') { // Amazon-specific error page
+                session.retire();
+            } else {
+                switch (label) {
+                    case 'OFFERS':
+                        return handleOffers(context, result);
+                    case 'DETAIL':
+                        return handleDetail(context, result);
+                    default:
+                        return handleStart(context, requestQueue);
+                }
             }
         },
     });
