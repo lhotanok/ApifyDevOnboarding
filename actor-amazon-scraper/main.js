@@ -13,6 +13,10 @@ Apify.main(async () => {
     const requestList = await Apify.openRequestList('start-url', [startUrl]);
     const requestQueue = await Apify.openRequestQueue();
 
+    const proxyConfiguration = await Apify.createProxyConfiguration({
+        groups: ['BUYPROXIES94952'],
+    });
+
     const crawler = new Apify.PuppeteerCrawler({
         maxRequestsPerCrawl: 100,
         requestList,
@@ -21,6 +25,7 @@ Apify.main(async () => {
             useChrome: true,
             stealth: true,
         },
+        proxyConfiguration,
         handlePageFunction: async (context) => {
             const { url, userData: { label } } = context.request;
 
