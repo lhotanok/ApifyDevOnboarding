@@ -12,6 +12,10 @@ const result = {};
 
 Apify.main(async () => {
     const input = await Apify.getInput();
+    const state = await Apify.getValue('STATE');
+    result.saved = state ? state.saved : {};
+    result.ASINs = state ? state.ASINs : {};
+    
     const startUrl = `https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=${input.keyword}`;
 
     const requestList = await Apify.openRequestList('start-url', [startUrl]);
@@ -41,8 +45,6 @@ Apify.main(async () => {
         handlePageFunction,
     });
 
-    result.saved = {};
-    result.ASINs = {};
     setInterval(() => log.info(`Saved offers: ${JSON.stringify(result.saved)}`), 20000);
 
     Apify.events.on('migrating', () => persistStateAndAbort(requestList));
@@ -123,7 +125,7 @@ async function saveBufferedOffers() {
  * @param {Apify.RequestList} requestList
  */
 async function persistStateAndAbort(requestList) {
-    await Apify.setValue('STATE', result.saved);
+    await Apify.setValue('STATE', result);
     await requestList.persistState();
 
     process.exit(); // to speed up abort
