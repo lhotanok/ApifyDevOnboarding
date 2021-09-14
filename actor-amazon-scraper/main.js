@@ -11,7 +11,6 @@ const { utils: { log } } = Apify;
 const result = {};
 
 Apify.main(async () => {
-    throw new Error('Restart on error testing');
     const input = await Apify.getInput();
     const state = await Apify.getValue('STATE');
     result.saved = state ? state.saved : {};
@@ -129,5 +128,5 @@ async function persistStateAndAbort(requestList) {
     await Apify.setValue('STATE', result);
     await requestList.persistState();
 
-    process.exit(); // to speed up abort
+    process.exit(1); // to speed up abort
 }
