@@ -135,5 +135,32 @@
 
 ### Do you know any software companies that develop anti-scraping solutions? Have you ever encountered them on a website?
 
-- Various CAPTCHA tests are often used, I've encountered them for example on websites that provide file downloading.
+- Various CAPTCHA tests are often used, I've encountered them for example on websites that provide file downloading or user log in.
   - Used e.g. by Google's reCAPTCHA.
+
+# Tutorial VII Actor Migrations & Maintaining State
+
+## Quiz
+
+### Actors have a `Restart on error` option in their Settings. Would you use this for your regular actors? Why? When would you use it, and when not?
+
+- I wouldn't use it for regular actors as it could trigger an infinite loop of restarting if the error was deterministic (wrong input configuration, code bug or something like that). It might burn the credit eventually.
+- On the other hand, `restart on error` feature might be useful for long running actors that are supposed to run continuously and  if an error occurs, it's most likely caused by the network connection or some external factors. In this case, it's wiser to keep the actor running and don't wait for a developer to trigger the run restart manually.
+
+### Migrations happen randomly, but by setting `Restart on error` and then throwing an error in the main process, you can force a similar situation. Observe what happens. What changes and what stays the same in a restarted actor run?
+
+### Why don't you usually need to add any special code to handle migrations in normal crawling/scraping? Is there a component that essentially solves this problem for you?
+
+ - Resurrection of a finished run handles this problem by restarting actor's run and providing it with the same storages. It is designed not only for migration but for each actor run in a terminal state (with status FINISHED, FAILED, ABORTED or TIME-OUT).
+
+### How can you intercept the migration event? How much time do you need after this takes place and before the actor migrates?
+
+- The migration info can be obtained using the `persistState` event which provides `{ isMigrating: Boolean }` value. This event is emitted in regular intervals which are set to 60 seconds by default.
+- Migration itself emits so called `migrating` event which can be used to persist actor's state before the migration process takes place.
+- Once the migration event is fired, we only have a few seconds to save actor's current state. After the migration finishes, we can start from the persisted state while restarting actor's run.
+
+### When would you persist data to a default key-value store and when would you use a named key-value store?
+
+- These two stores differ in a retention period so it depends how long do we need to persist data.
+- When we want to store data for 7 days only (e. g. for the next actor's run), a default key-value store is a fair choice. Otherwise we should use a named key-value store which never expires.
+
