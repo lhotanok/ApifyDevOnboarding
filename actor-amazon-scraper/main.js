@@ -1,4 +1,8 @@
 const Apify = require('apify');
+
+// eslint-disable-next-line no-unused-vars
+const { Page, HTTPResponse } = require('puppeteer');
+
 const { handleStart } = require('./src/startPage');
 const { handleDetail } = require('./src/detailPage');
 const { handleOffers } = require('./src/offersPage');
@@ -41,8 +45,8 @@ Apify.main(async () => {
     result.ASINs = {};
     setInterval(() => log.info(`Saved offers: ${JSON.stringify(result.saved)}`), 20000);
 
-    Apify.events.on('migrating', () => Apify.setValue('STATE', result.saved));
-    Apify.events.on('aborting', () => Apify.setValue('STATE', result.saved));
+    Apify.events.on('migrating', () => persistStateAndAbort(requestList));
+    Apify.events.on('aborting', () => persistStateAndAbort(requestList));
 
     log.info('Starting the crawl.');
 
@@ -52,6 +56,18 @@ Apify.main(async () => {
     log.info('Crawl finished.');
 });
 
+/**
+ *
+ * @param {Object} context Request context
+ * @param {Apify.Request} context.request
+ * @param {HTTPResponse} context.response
+ * @param {Page} context.page
+ * @param {Apify.Session} context.session
+ * @param {Apify.BrowserController} context.browserController
+ * @param {Apify.ProxyInfo} context.proxyInfo
+ * @param {Apify.PuppeteerCrawler} context.crawler
+ * @returns
+ */
 async function handlePageFunction(context) {
     const { request, page, session } = context;
     const { url, userData: { label } } = request;
@@ -79,6 +95,11 @@ async function handlePageFunction(context) {
     }
 }
 
+/**
+ * Is designed for cases when product detail page was scraped
+ * after the corresponding offers page (e.g. error was thrown
+ * while crawling detail page)
+ */
 async function saveBufferedOffers() {
     const joinedResults = [];
 
@@ -95,4 +116,15 @@ async function saveBufferedOffers() {
     });
 
     await Apify.pushData(joinedResults);
+}
+
+/**
+ *
+ * @param {Apify.RequestList} requestList
+ */
+async function persistStateAndAbort(requestList) {
+    await Apify.setValue('STATE', result.saved);
+    await requestList.persistState();
+
+    process.exit(); // to speed up abort
 }

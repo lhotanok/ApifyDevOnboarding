@@ -1,9 +1,22 @@
 const Apify = require('apify');
+
+// eslint-disable-next-line no-unused-vars
+const { Page } = require('puppeteer');
+
 const { getElementInnerText, getElementsInnerTexts } = require('./pageEvaluator');
 
 const { saveSnapshot } = Apify.utils.puppeteer;
 const { utils: { log } } = Apify;
 
+/**
+ *
+ * @param {Object} context
+ * @param {Apify.Request} context.request
+ * @param {Page} context.page
+ * @param {Object} result
+ * @param {Object} result.saved
+ * @param {Object} result.ASINs
+ */
 exports.handleOffers = async ({ request, page }, result) => {
     const sellerNamesSelector = '#aod-offer-soldBy [aria-label]';
     await page.waitForSelector(sellerNamesSelector);
@@ -40,6 +53,11 @@ exports.handleOffers = async ({ request, page }, result) => {
     await saveSnapshot(page, { key: `test-screen-${ASIN}` });
 };
 
+/**
+ *
+ * @param {Page} page
+ * @returns
+ */
 async function scrapePrices(page) {
     const priceSubSelector = '.a-price>.a-offscreen';
     const pinnedOfferPrice = await scrapePinnedOfferProperty(page, priceSubSelector);
@@ -51,6 +69,11 @@ async function scrapePrices(page) {
     return prices;
 }
 
+/**
+ *
+ * @param {Page} page
+ * @returns
+ */
 async function scrapeShippingPrices(page) {
     const pinnedOfferShippingPrice = await scrapePinnedOfferProperty(page,
         '> div:nth-child(3) > span > span');
@@ -78,6 +101,12 @@ async function scrapeShippingPrices(page) {
     return parsedShippingPrices;
 }
 
+/**
+ *
+ * @param {Page} page
+ * @param {String} subSelector
+ * @returns
+ */
 async function scrapePinnedOfferProperty(page, subSelector) {
     let pinnedOfferProperty = await getElementInnerText(page, `#aod-pinned-offer ${subSelector}`);
 
@@ -88,6 +117,12 @@ async function scrapePinnedOfferProperty(page, subSelector) {
     return pinnedOfferProperty;
 }
 
+/**
+ *
+ * @param {Page} page
+ * @param {String[]} subSelectors
+ * @returns {String[]}
+ */
 async function scrapeNotPinnedOffersPriceProperties(page, subSelectors) {
     return page.evaluate((subSels) => {
         const priceProperties = [];

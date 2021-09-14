@@ -4,11 +4,16 @@ const { utils: { log } } = Apify;
 
 exports.handleStart = async ({ page, crawler }, result) => {
     log.info('Crawling start page');
+    const state = await Apify.getValue('STATE');
+
     await page.waitForSelector('div[data-asin]');
 
-    const ASINs = await page.$$eval('div[data-asin]',
+    let ASINs = await page.$$eval('div[data-asin]',
         (elements) => elements.map((element) => element.getAttribute('data-asin'))
-            .filter((ASIN) => ASIN !== ''));
+            .filter((ASIN) => ASIN !== '')); // keep non-empty ASINs only
+
+    // keep unprocessed ASINs only (for actor's state restore from the previous run)
+    ASINs = ASINs.filter((ASIN) => !state || !state[ASIN]);
 
     log.info(`Product ASINs from the first page: ${ASINs}`);
 
