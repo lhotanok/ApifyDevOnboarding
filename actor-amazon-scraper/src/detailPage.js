@@ -13,7 +13,7 @@ exports.handleDetail = async ({ request, page }, result) => {
     const { url } = request;
     const { ASIN } = request.userData;
 
-    result[ASIN].detail = { title, description, url, keyword };
+    result.ASINs[ASIN].detail = { title, description, url, keyword };
 
     log.info(`New detail saved.
     Title: ${title},

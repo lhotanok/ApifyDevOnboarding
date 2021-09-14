@@ -34,50 +34,60 @@ Apify.main(async () => {
                 maxUsageCount: 5, // rotates the IP after 5 successful requests
             },
         },
-        handlePageFunction: async (context) => {
-            const { request, page, session } = context;
-            const { url, userData: { label } } = request;
-
-            log.info('Page opened.', { label, url });
-
-            const title = await page.title();
-            log.info(`Page title: ${title}`);
-
-            if (title.toLowerCase().includes('sorry')) {
-                session.retire();
-                throw new Error('Page was blocked. Session retired.');
-            } else if (title === 'Amazon.com') {
-                session.retire();
-                throw new Error('Captcha test was thrown.');
-            }
-
-            switch (label) {
-                case 'OFFERS':
-                    return handleOffers(context, result);
-                case 'DETAIL':
-                    return handleDetail(context, result);
-                default:
-                    return handleStart(context, requestQueue, result);
-            }
-        },
+        handlePageFunction,
     });
+
+    result.saved = {};
+    result.ASINs = {};
+    setInterval(() => log.info(`Saved offers: ${JSON.stringify(result.saved)}`), 20000);
+
+    Apify.events.on('migrating', () => Apify.setValue('STATE', result.saved));
+    Apify.events.on('aborting', () => Apify.setValue('STATE', result.saved));
 
     log.info('Starting the crawl.');
 
     await crawler.run();
-    await saveResult();
+    await saveBufferedOffers();
 
     log.info('Crawl finished.');
 });
 
-async function saveResult() {
+async function handlePageFunction(context) {
+    const { request, page, session } = context;
+    const { url, userData: { label } } = request;
+
+    log.info('Page opened.', { label, url });
+
+    const title = await page.title();
+    log.info(`Page title: ${title}`);
+
+    if (title.toLowerCase().includes('sorry')) {
+        session.retire();
+        throw new Error('Page was blocked. Session retired.');
+    } else if (title === 'Amazon.com') {
+        session.retire();
+        throw new Error('Captcha test was thrown.');
+    }
+
+    switch (label) {
+        case 'OFFERS':
+            return handleOffers(context, result);
+        case 'DETAIL':
+            return handleDetail(context, result);
+        default:
+            return handleStart(context, result);
+    }
+}
+
+async function saveBufferedOffers() {
     const joinedResults = [];
 
-    Object.keys(result).forEach((ASIN) => {
-        const { detail, offers } = result[ASIN];
+    Object.keys(result.ASINs).forEach((ASIN) => {
+        const { detail, offers } = result.ASINs[ASIN];
 
         joinedResults.push(...offers.map((offer) => {
             if (detail === {}) {
+                // detail pages was not scraped successfully, store at least product's url
                 detail.url = `https://www.amazon.com/dp/${ASIN}`;
             }
             return { ...detail, ...offer };
