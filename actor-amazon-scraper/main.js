@@ -128,5 +128,5 @@ async function persistStateAndAbort(requestList) {
     await Apify.setValue('STATE', result);
     await requestList.persistState();
 
-    process.exit(1); // to speed up abort
+    process.exit(91); // to speed up abort
 }
