@@ -43,17 +43,21 @@ Apify.main(async () => {
             const title = await page.title();
             log.info(`Page title: ${title}`);
 
-            if (title === 'Sorry! Something went wrong!') { // Amazon-specific error page
+            if (title.toLowerCase().includes('sorry')) {
                 session.retire();
-            } else {
-                switch (label) {
-                    case 'OFFERS':
-                        return handleOffers(context, result);
-                    case 'DETAIL':
-                        return handleDetail(context, result);
-                    default:
-                        return handleStart(context, requestQueue, result);
-                }
+                throw new Error('Page was blocked. Session retired.');
+            } else if (title === 'Amazon.com') {
+                session.retire();
+                throw new Error('Captcha test was thrown.');
+            }
+
+            switch (label) {
+                case 'OFFERS':
+                    return handleOffers(context, result);
+                case 'DETAIL':
+                    return handleDetail(context, result);
+                default:
+                    return handleStart(context, requestQueue, result);
             }
         },
     });
@@ -72,7 +76,12 @@ async function saveResult() {
     Object.keys(result).forEach((ASIN) => {
         const { detail, offers } = result[ASIN];
 
-        joinedResults.push(...offers.map((offer) => ({ ...detail, ...offer })));
+        joinedResults.push(...offers.map((offer) => {
+            if (detail === {}) {
+                detail.url = `https://www.amazon.com/dp/${ASIN}`;
+            }
+            return { ...detail, ...offer };
+        }));
     });
 
     await Apify.pushData(joinedResults);
