@@ -104,13 +104,13 @@ async function handlePageFunction(context) {
  */
 async function saveBufferedOffers() {
     const joinedResults = [];
-
+    throw new Error('Restart on error testing');
     Object.keys(result.ASINs).forEach((ASIN) => {
         const { detail, offers } = result.ASINs[ASIN];
 
         joinedResults.push(...offers.map((offer) => {
             if (!detail) {
-                // detail pages was not scraped successfully, store at least product's url
+                // detail page was not scraped successfully, store at least product's url
                 detail.url = `https://www.amazon.com/dp/${ASIN}`;
             }
             return { ...detail, ...offer };
