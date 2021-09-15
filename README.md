@@ -149,6 +149,9 @@
 
 ### Migrations happen randomly, but by setting `Restart on error` and then throwing an error in the main process, you can force a similar situation. Observe what happens. What changes and what stays the same in a restarted actor run?
 
+- Actor's run is exited with a non-zero exit code and it is restarted eventually. A new Docker container is created and started afterwards. 
+- Actor's stores remain the same in a restarted run including INPUT value or persisted state. Dataset also survives for the restarted run.
+
 ### Why don't you usually need to add any special code to handle migrations in normal crawling/scraping? Is there a component that essentially solves this problem for you?
 
  - Resurrection of a finished run handles this problem by restarting actor's run and providing it with the same storages. It is designed not only for migration but for each actor run in a terminal state (with status FINISHED, FAILED, ABORTED or TIME-OUT).
