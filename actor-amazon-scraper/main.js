@@ -15,7 +15,7 @@ Apify.main(async () => {
     const state = await Apify.getValue('STATE');
     result.saved = state ? state.saved : {};
     result.ASINs = state ? state.ASINs : {};
-    
+
     const startUrl = `https://www.amazon.com/s/ref=nb_sb_noss?url=search-alias%3Daps&field-keywords=${input.keyword}`;
 
     const requestList = await Apify.openRequestList('start-url', [startUrl]);
@@ -109,7 +109,7 @@ async function saveBufferedOffers() {
         const { detail, offers } = result.ASINs[ASIN];
 
         joinedResults.push(...offers.map((offer) => {
-            if (detail === {}) {
+            if (!detail) {
                 // detail pages was not scraped successfully, store at least product's url
                 detail.url = `https://www.amazon.com/dp/${ASIN}`;
             }
@@ -128,5 +128,5 @@ async function persistStateAndAbort(requestList) {
     await Apify.setValue('STATE', result);
     await requestList.persistState();
 
-    process.exit(91); // to speed up abort
+    process.exit(); // to speed up abort
 }
