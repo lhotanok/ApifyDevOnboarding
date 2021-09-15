@@ -166,4 +166,3 @@
 
 - These two stores differ in a retention period so it depends how long do we need to persist data.
 - When we want to store data for 7 days only (e. g. for the next actor's run), a default key-value store is a fair choice. Otherwise we should use a named key-value store which never expires.
-
