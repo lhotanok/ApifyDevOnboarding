@@ -7,7 +7,7 @@ exports.handleStart = async ({ page, crawler }, result) => {
 
     await page.waitForSelector('div[data-asin]');
 
-    let ASINs = await page.$$eval('div[data-asin]',
+    const ASINs = await page.$$eval('div[data-asin]',
         (elements) => elements.map((element) => element.getAttribute('data-asin'))
             .filter((ASIN) => ASIN !== '')); // keep non-empty ASINs only
 
