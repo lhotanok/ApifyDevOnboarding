@@ -30,7 +30,7 @@ exports.handleOffers = async ({ request, page }, result) => {
     // Amazon sometimes adds extra item for pinned offer
     while (sellerNames.length > prices.length) sellerNames.shift();
 
-    result.saved[ASIN] = 0;
+    let savedResultsCount = 0;
 
     for (let i = 0; i < sellerNames.length; i++) {
         const sellerName = sellerNames[i];
@@ -41,7 +41,7 @@ exports.handleOffers = async ({ request, page }, result) => {
         if (result.ASINs[ASIN].detail) {
             // detail page scraped already
             await Apify.pushData({ ...result.ASINs[ASIN].detail, ...offerInfo });
-            result.saved[ASIN]++;
+            savedResultsCount++;
         } else {
             // save offer for later join with detail info
             result.ASINs[ASIN].offers.push(offerInfo);
@@ -49,6 +49,8 @@ exports.handleOffers = async ({ request, page }, result) => {
 
         log.info(`New offer scraped. Seller name: ${sellerName}, Price: ${price}, Shipping: ${shippingPrice}`);
     }
+
+    if (savedResultsCount !== 0) result.saved[ASIN] = savedResultsCount;
 
     await saveSnapshot(page, { key: `test-screen-${ASIN}` });
 };
