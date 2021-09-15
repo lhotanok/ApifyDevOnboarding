@@ -38,7 +38,7 @@ exports.handleOffers = async ({ request, page }, result) => {
         const shippingPrice = shippingPrices[i];
         const offerInfo = { sellerName, price, shippingPrice };
 
-        if (result.ASINs[ASIN].detail !== {}) {
+        if (result.ASINs[ASIN].detail) {
             // detail page scraped already
             await Apify.pushData({ ...result.ASINs[ASIN].detail, ...offerInfo });
             result.saved[ASIN]++;

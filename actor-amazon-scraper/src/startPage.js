@@ -14,7 +14,7 @@ exports.handleStart = async ({ page, crawler }, result) => {
     log.info(`Product ASINs from the first page: ${ASINs}`);
 
     ASINs.forEach((ASIN) => {
-        result.ASINs[ASIN] = { detail: {}, offers: [] };
+        result.ASINs[ASIN] = { offers: [] };
     });
 
     const testASINs = [ASINs[0], ASINs[1], ASINs[2], ASINs[3]];
