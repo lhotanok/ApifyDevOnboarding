@@ -17,10 +17,10 @@ exports.handleStart = async ({ page, crawler }, result) => {
         result.ASINs[ASIN] = { offers: [] };
     });
 
-    const testASINs = [ASINs[0], ASINs[1], ASINs[2], ASINs[3]];
-    await enqueuePagesToScrape(testASINs, crawler.requestQueue);
+    // const testASINs = [ASINs[0], ASINs[1], ASINs[2], ASINs[3]];
+    // await enqueuePagesToScrape(testASINs, crawler.requestQueue);
 
-    // await enqueuePagesToScrape(ASINs, requestQueue);
+    await enqueuePagesToScrape(ASINs, crawler.requestQueue);
 };
 
 /**

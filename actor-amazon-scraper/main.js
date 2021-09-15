@@ -104,7 +104,7 @@ async function handlePageFunction(context) {
  */
 async function saveBufferedOffers() {
     const joinedResults = [];
-    throw new Error('Restart on error testing');
+
     Object.keys(result.ASINs).forEach((ASIN) => {
         const { detail, offers } = result.ASINs[ASIN];
 
