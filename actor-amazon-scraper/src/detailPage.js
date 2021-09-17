@@ -12,24 +12,27 @@ const { utils: { log } } = Apify;
  * @param {Object} context
  * @param {Apify.Request} context.request
  * @param {Page} context.page
- * @param {Object} result
- * @param {Object} result.saved
- * @param {Object} result.ASINs
+ * @param {Apify.PuppeteerCrawler} context.crawler
+ * @param {String} keyword
  */
-exports.handleDetail = async ({ request, page }, result) => {
+exports.handleDetail = async ({ request, page, crawler }, keyword) => {
     const title = await getElementInnerText(page, '#productTitle');
     const description = await getElementInnerText(page, '#productDescription');
 
-    const input = await Apify.getInput();
-    const { keyword } = input;
+    const { url, userData: { ASIN } } = request;
+    const { requestQueue } = crawler;
 
-    const { url } = request;
-    const { ASIN } = request.userData;
-
-    result.ASINs[ASIN].detail = { title, description, url, keyword };
+    const detail = { title, description, url, keyword };
 
     log.info(`New detail saved.
-    Title: ${title},
-    Url: ${url},
+    Title: ${title}
+    Url: ${url}
     Keyword: ${keyword}`);
+
+    const offersRequest = {
+        url: `https://www.amazon.com/gp/offer-listing/${ASIN}`,
+        userData: { label: 'OFFERS', ASIN, detail },
+    };
+
+    await requestQueue.addRequest(offersRequest);
 };

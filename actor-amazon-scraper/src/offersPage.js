@@ -5,7 +5,6 @@ const { Page } = require('puppeteer');
 
 const { getElementInnerText, getElementsInnerTexts } = require('./pageEvaluator');
 
-const { saveSnapshot } = Apify.utils.puppeteer;
 const { utils: { log } } = Apify;
 
 /**
@@ -13,11 +12,10 @@ const { utils: { log } } = Apify;
  * @param {Object} context
  * @param {Apify.Request} context.request
  * @param {Page} context.page
- * @param {Object} result
- * @param {Object} result.saved
- * @param {Object} result.ASINs
+ * @param {Object} state
+ * @param {Object} state.saved
  */
-exports.handleOffers = async ({ request, page }, result) => {
+exports.handleOffers = async ({ request, page }, state) => {
     const sellerNamesSelector = '#aod-offer-soldBy [aria-label]';
     await page.waitForSelector(sellerNamesSelector);
 
@@ -30,7 +28,8 @@ exports.handleOffers = async ({ request, page }, result) => {
     // Amazon sometimes adds extra item for pinned offer
     while (sellerNames.length > prices.length) sellerNames.shift();
 
-    let savedResultsCount = 0;
+    // Initialize with 0 if no offers were scraped for this ASIN so far
+    if (!state.saved[ASIN]) state.saved[ASIN] = 0;
 
     for (let i = 0; i < sellerNames.length; i++) {
         const sellerName = sellerNames[i];
@@ -38,21 +37,12 @@ exports.handleOffers = async ({ request, page }, result) => {
         const shippingPrice = shippingPrices[i];
         const offerInfo = { sellerName, price, shippingPrice };
 
-        if (result.ASINs[ASIN].detail) {
-            // detail page scraped already
-            await Apify.pushData({ ...result.ASINs[ASIN].detail, ...offerInfo });
-            savedResultsCount++;
-        } else {
-            // save offer for later join with detail info
-            result.ASINs[ASIN].offers.push(offerInfo);
-        }
+        const { detail } = request.userData;
+        await Apify.pushData({ ...detail, ...offerInfo });
+        state.saved[ASIN]++;
 
-        log.info(`New offer scraped. Seller name: ${sellerName}, Price: ${price}, Shipping: ${shippingPrice}`);
+        log.info(`New offer scraped for product ASIN: ${ASIN}. ${JSON.stringify(offerInfo, null, 2)}`);
     }
-
-    if (savedResultsCount !== 0) result.saved[ASIN] = savedResultsCount;
-
-    await saveSnapshot(page, { key: `test-screen-${ASIN}` });
 };
 
 /**
@@ -123,7 +113,7 @@ async function scrapePinnedOfferProperty(page, subSelector) {
  *
  * @param {Page} page
  * @param {String[]} subSelectors
- * @returns {String[]}
+ * @returns {Promise<String[]>}
  */
 async function scrapeNotPinnedOffersPriceProperties(page, subSelectors) {
     return page.evaluate((subSels) => {

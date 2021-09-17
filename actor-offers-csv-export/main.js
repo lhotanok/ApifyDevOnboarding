@@ -1,34 +1,37 @@
-import Apify, { main, getInput, setValue } from 'apify';
-import ApifyClient from 'apify-client';
+import Apify, { getInput, setValue } from 'apify';
 import fetch from 'node-fetch';
 import { URLSearchParams } from 'url';
 
 const { utils: { log } } = Apify;
 
-main(async () => {
+Apify.main(async () => {
     const input = await getInput();
     const { useClient } = input;
 
-    const taskName = 'lhotanok~laptop-search-task';
+    const TASK_NAME = 'lhotanok~laptop-search-task';
 
-    const items = useClient ? await getTaskRunResultUsingClient(taskName, input)
-        : await getTaskRunResultUsingApi(taskName, input);
+    const items = useClient 
+        ? await getTaskRunResultUsingClient(TASK_NAME, input)
+        : await getTaskRunResultUsingApi(TASK_NAME, input);
 
     log.info(`Output items: ${items}`);
 
-    // sets .csv extension automatically (works locally but not on Apify platform)
-    // if called with 'OUTPUT.csv' parameter locally, OUTPUT.csv.csv is created 👀
-    // await setValue('OUTPUT', items, { contentType: 'text/csv' });
-
-    await setValue('OUTPUT.csv', items, { contentType: 'text/csv' });
-
-    log.info('Export finished.');
+    if (items.error) {
+        throw new Error(items.error.message);
+    } else {
+        // sets .csv extension automatically (works locally but not on Apify platform)
+        // if called with 'OUTPUT.csv' parameter locally, OUTPUT.csv.csv is created 👀
+        // await setValue('OUTPUT', items, { contentType: 'text/csv' });
+        
+        await setValue('OUTPUT.csv', items, { contentType: 'text/csv' });
+        log.info('Export finished.');
+    }
 });
 
 /**
  * @param {String} taskId Task id or unique name
  * @param {Object} input Input object for task run configuration
- * @returns {String} Dataset items in csv text format
+ * @returns {Promise<String>} Dataset items in csv text format
  */
 async function getTaskRunResultUsingApi(taskId, input) {
     const { memory, fields, maxItems } = input;
@@ -51,23 +54,29 @@ async function getTaskRunResultUsingApi(taskId, input) {
         }
     };
 
+    log.info(`Starting task run. Task id: ${taskId}`);
     const response = await fetch(url.href, requestBody);
 
-    return await response.text();
+    return response.text();
 }
 
 /**
  * @param {String} taskId Task id or unique name
  * @param {Object} input Input object for task run configuration
- * @returns {Buffer} Dataset items buffered in csv text format
+ * @param {Number} input.memory
+ * @param {Array} input.fields
+ * @param {Number} input.maxItems
+ * @returns {Promise<Buffer>} Dataset items buffered in csv text format
  */
 async function getTaskRunResultUsingClient(taskId, input) {
-    const apifyClient = new ApifyClient({ 'token': process.env.APIFY_TOKEN });
+    const apifyClient = new Apify.newClient({ 'token': process.env.APIFY_TOKEN });
     const taskClient = apifyClient.task(taskId);
 
     const { memory, fields, maxItems } = input;
 
+    log.info(`Starting task run. Task id: ${taskId}`);
     const run = await taskClient.call({ memory });
+
     const runClient = apifyClient.run(run.id);
 
     const datasetClient = runClient.dataset();
@@ -77,5 +86,5 @@ async function getTaskRunResultUsingClient(taskId, input) {
         fields
     };
     
-    return await datasetClient.downloadItems('csv', downloadOptions);  
+    return datasetClient.downloadItems('csv', downloadOptions);  
 }

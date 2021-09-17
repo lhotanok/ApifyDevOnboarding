@@ -1,5 +1,4 @@
 const Apify = require('apify');
-const ApifyClient = require('apify-client');
 
 const { utils: { log } } = Apify;
 
@@ -7,7 +6,7 @@ Apify.main(async () => {
     const input = await Apify.getInput();
     const datasetID = input.resource.defaultDatasetId;
 
-    const client = new ApifyClient();
+    const client = Apify.newClient()
     const { items } = await client.dataset(datasetID).listItems();
 
     log.info(`Dataset ID is: ${datasetID}`);
